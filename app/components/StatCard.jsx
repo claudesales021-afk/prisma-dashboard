@@ -1,27 +1,23 @@
 "use client";
-import { Eye, EyeOff } from "lucide-react";
 
-export default function StatCard({ label, value, delta, hidden, onToggleHide, accent = false }) {
+// Cartão compacto para o carrossel horizontal de indicadores.
+export default function StatCard({ label, value, delta, hidden, icon: Icon }) {
   return (
-    <div className={`rounded-2xl p-5 border ${accent ? "bg-prisma border-prisma text-white" : "bg-card border-border"}`}>
-      <div className="flex items-center justify-between">
-        <span className="text-xs text-white/70">{label}</span>
-        {onToggleHide && (
-          <button
-            onClick={onToggleHide}
-            className="text-white/70 hover:text-white transition"
-            aria-label={hidden ? "Mostrar valor" : "Ocultar valor"}
-          >
-            {hidden ? <EyeOff size={14} /> : <Eye size={14} />}
-          </button>
+    <div className="snap-start shrink-0 w-[150px] rounded-2xl p-4 bg-card border border-border shadow-soft">
+      <div className="flex items-center gap-2 text-xs text-muted">
+        {Icon && (
+          <span className="w-7 h-7 rounded-full bg-mist text-prisma flex items-center justify-center">
+            <Icon size={14} strokeWidth={1.8} />
+          </span>
         )}
+        {label}
       </div>
-      <div className="text-2xl font-extrabold mt-2 tracking-tight">
-        {hidden ? "R$ ••••••" : value}
+      <div className="text-lg font-semibold mt-3 tracking-tight truncate text-ink">
+        {hidden ? "R$ ••••" : value}
       </div>
-      {delta && !hidden && (
-        <div className={`text-xs mt-1 font-bold ${delta.startsWith("-") ? "text-danger" : "text-success"}`}>
-          {delta}
+      {delta && (
+        <div className={`text-[11px] mt-0.5 font-medium ${delta.startsWith("-") ? "text-danger" : "text-muted"}`}>
+          {hidden ? "•••" : delta}
         </div>
       )}
     </div>

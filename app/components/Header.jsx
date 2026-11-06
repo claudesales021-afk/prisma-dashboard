@@ -1,10 +1,11 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
-import { Search, Bell, User, Menu } from "lucide-react";
+import { Search, Bell, User, X, LogOut, HelpCircle, Settings } from "lucide-react";
 
-export default function Header({ search, setSearch, onToggleMobileMenu, onToast }) {
+export default function Header({ title, search, setSearch, onToast, onLogout, onNavigate }) {
   const [notifOpen, setNotifOpen] = useState(false);
   const [userOpen, setUserOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(Boolean(search));
   const notifRef = useRef(null);
   const userRef = useRef(null);
 
@@ -16,12 +17,12 @@ export default function Header({ search, setSearch, onToggleMobileMenu, onToast 
   const unread = notifs.filter((n) => !n.read).length;
 
   useEffect(() => {
-    const onClick = (e) => {
+    const onDown = (e) => {
       if (notifRef.current && !notifRef.current.contains(e.target)) setNotifOpen(false);
       if (userRef.current && !userRef.current.contains(e.target))  setUserOpen(false);
     };
-    document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
+    document.addEventListener("pointerdown", onDown);
+    return () => document.removeEventListener("pointerdown", onDown);
   }, []);
 
   const markAllRead = () => {
@@ -29,89 +30,100 @@ export default function Header({ search, setSearch, onToggleMobileMenu, onToast 
     onToast?.({ kind: "success", msg: "Notificações marcadas como lidas" });
   };
 
+  const closeSearch = () => { setSearch(""); setSearchOpen(false); };
+
+  const iconBtn = "relative w-10 h-10 rounded-full bg-card border border-border shadow-soft flex items-center justify-center text-ink active:scale-95 transition";
+
   return (
-    <header className="h-16 bg-card border-b border-border flex items-center gap-3 px-4 md:px-6 sticky top-0 z-30">
-      <button
-        className="md:hidden text-muted hover:text-light p-1"
-        onClick={onToggleMobileMenu}
-        aria-label="Abrir menu"
-      >
-        <Menu size={22} />
-      </button>
-
-      <div className="flex-1 max-w-md relative">
-        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Buscar transação, investimento…"
-          className="w-full bg-bg border border-border rounded-lg pl-9 pr-3 py-2 text-sm placeholder:text-muted focus:border-prisma focus:outline-none transition"
-        />
-      </div>
-
-      {/* Notificações */}
-      <div className="relative" ref={notifRef}>
-        <button
-          onClick={() => setNotifOpen(!notifOpen)}
-          className="relative p-2 rounded-lg text-muted hover:text-light hover:bg-border transition"
-          aria-label="Notificações"
-        >
-          <Bell size={18} />
-          {unread > 0 && (
-            <span className="absolute top-1 right-1 w-2 h-2 bg-danger rounded-full" />
-          )}
-        </button>
-        {notifOpen && (
-          <div className="absolute right-0 top-full mt-2 w-80 bg-card border border-border rounded-xl shadow-lg overflow-hidden">
-            <div className="flex items-center justify-between p-3 border-b border-border">
-              <span className="text-sm font-bold">Notificações</span>
-              <button onClick={markAllRead} className="text-xs text-prisma hover:underline">
-                Marcar como lidas
-              </button>
+    <header className="relative z-30 shrink-0 px-4 pt-[max(env(safe-area-inset-top),16px)] pb-3 bg-bg">
+      <div className="flex items-center gap-3">
+        {/* Usuário */}
+        <div ref={userRef}>
+          <button
+            onClick={() => setUserOpen(!userOpen)}
+            className="w-10 h-10 rounded-full bg-mist border border-sky/60 flex items-center justify-center active:scale-95 transition"
+            aria-label="Menu do usuário"
+          >
+            <User size={18} className="text-prisma" strokeWidth={1.8} />
+          </button>
+          {userOpen && (
+            <div className="absolute left-4 top-full mt-1 w-56 bg-card border border-border rounded-2xl shadow-soft overflow-hidden animate-fade-in">
+              <MenuItem icon={User} onClick={() => { setUserOpen(false); onToast?.({ kind: "info", msg: "Abrindo perfil…" }); }}>Meu perfil</MenuItem>
+              <MenuItem icon={Settings} onClick={() => { setUserOpen(false); onNavigate?.("config"); }}>Configurações</MenuItem>
+              <MenuItem icon={HelpCircle} onClick={() => { setUserOpen(false); onNavigate?.("config"); }}>Suporte</MenuItem>
+              <MenuItem icon={LogOut} danger onClick={() => { setUserOpen(false); onLogout?.(); }}>Sair</MenuItem>
             </div>
-            <ul className="max-h-72 overflow-y-auto">
-              {notifs.map((n) => (
-                <li
-                  key={n.id}
-                  className={`px-3 py-2.5 text-sm border-b border-border last:border-0 ${n.read ? "text-muted" : "text-light"}`}
-                >
-                  {n.text}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+          )}
+        </div>
+
+        <div className="flex-1 min-w-0 leading-tight">
+          <div className="text-xs text-muted">Olá, Vini</div>
+          <div className="text-lg font-semibold tracking-tight truncate text-ink">{title}</div>
+        </div>
+
+        <button
+          onClick={() => (searchOpen ? closeSearch() : setSearchOpen(true))}
+          className={iconBtn}
+          aria-label={searchOpen ? "Fechar busca" : "Buscar"}
+        >
+          {searchOpen ? <X size={18} /> : <Search size={18} />}
+        </button>
+
+        {/* Notificações */}
+        <div ref={notifRef}>
+          <button onClick={() => setNotifOpen(!notifOpen)} className={iconBtn} aria-label="Notificações">
+            <Bell size={18} />
+            {unread > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-prisma text-[10px] font-semibold flex items-center justify-center text-white ring-2 ring-bg">
+                {unread}
+              </span>
+            )}
+          </button>
+          {notifOpen && (
+            <div className="absolute left-4 right-4 top-full mt-1 bg-card border border-border rounded-2xl shadow-soft overflow-hidden animate-fade-in">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+                <span className="text-sm font-semibold text-ink">Notificações</span>
+                <button onClick={markAllRead} className="text-xs font-semibold text-prisma">
+                  Marcar como lidas
+                </button>
+              </div>
+              <ul className="max-h-72 overflow-y-auto">
+                {notifs.map((n) => (
+                  <li key={n.id} className="flex items-center gap-3 px-4 py-3 text-sm border-b border-border last:border-0">
+                    <span className={`w-2 h-2 rounded-full shrink-0 ${n.read ? "bg-transparent" : "bg-prisma"}`} />
+                    <span className={n.read ? "text-muted" : "text-ink"}>{n.text}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Usuário */}
-      <div className="relative" ref={userRef}>
-        <button
-          onClick={() => setUserOpen(!userOpen)}
-          className="flex items-center gap-2 p-1 pr-2 rounded-lg hover:bg-border transition"
-        >
-          <div className="w-8 h-8 rounded-full bg-prisma flex items-center justify-center">
-            <User size={16} />
-          </div>
-          <span className="text-sm hidden sm:inline">Vini</span>
-        </button>
-        {userOpen && (
-          <div className="absolute right-0 top-full mt-2 w-48 bg-card border border-border rounded-xl shadow-lg overflow-hidden">
-            <button
-              onClick={() => { setUserOpen(false); onToast?.({ kind: "info", msg: "Abrindo perfil…" }); }}
-              className="w-full text-left px-3 py-2 text-sm hover:bg-border transition"
-            >
-              Meu perfil
-            </button>
-            <button
-              onClick={() => { setUserOpen(false); onToast?.({ kind: "info", msg: "Abrindo configurações…" }); }}
-              className="w-full text-left px-3 py-2 text-sm hover:bg-border transition"
-            >
-              Configurações
-            </button>
-          </div>
-        )}
-      </div>
+      {searchOpen && (
+        <div className="relative mt-3 animate-fade-in">
+          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
+          <input
+            autoFocus
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar transação…"
+            className="w-full bg-card border border-border shadow-soft rounded-full pl-10 pr-4 py-2.5 text-base text-ink placeholder:text-muted/70 focus:border-prisma focus:outline-none transition"
+          />
+        </div>
+      )}
     </header>
+  );
+}
+
+function MenuItem({ icon: Icon, children, onClick, danger }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`w-full flex items-center gap-3 px-4 py-3 text-sm active:bg-bg border-b border-border last:border-0 ${danger ? "text-danger" : "text-ink"}`}
+    >
+      <Icon size={16} /> {children}
+    </button>
   );
 }

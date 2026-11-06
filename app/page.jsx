@@ -1,11 +1,15 @@
 "use client";
 import { useRef, useMemo, useState } from "react";
-import { Plus, Download, ArrowDownToLine, ArrowUpFromLine } from "lucide-react";
+import { Plus, Download, ArrowDownToLine, ArrowUpFromLine, Eye, EyeOff, TrendingUp, PiggyBank, Receipt } from "lucide-react";
 import DashboardLayout from "./components/DashboardLayout";
 import StatCard from "./components/StatCard";
 import TransactionsTable from "./components/TransactionsTable";
 import InvestmentsList from "./components/InvestmentsList";
 import Modal from "./components/Modal";
+import Carteira from "./components/screens/Carteira";
+import Transacoes from "./components/screens/Transacoes";
+import Relatorios from "./components/screens/Relatorios";
+import Ajustes from "./components/screens/Ajustes";
 
 const PERIODOS = [
   { id: "7d",  label: "7D"  },
@@ -124,107 +128,94 @@ export default function DashboardPage() {
   };
 
   const TITULOS = {
-    dashboard: "Dashboard", carteira: "Carteira", transacoes: "Transações",
-    relatorios: "Relatórios", suporte: "Suporte", config: "Configurações",
+    dashboard: "Início", carteira: "Carteira", transacoes: "Transações",
+    relatorios: "Relatórios", config: "Ajustes",
   };
 
   return (
     <DashboardLayout
       activeTab={activeTab} setActiveTab={setActiveTab}
+      title={TITULOS[activeTab]}
       search={search} setSearch={setSearch}
       onToastRef={toastRef}
     >
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-        <div>
-          <h1 className="text-2xl font-extrabold tracking-tight">{TITULOS[activeTab]}</h1>
-          <p className="text-muted text-sm">Olá, Vini! Aqui está um resumo da sua conta.</p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <div className="flex bg-card border border-border rounded-lg p-1">
-            {PERIODOS.map((p) => (
-              <button
-                key={p.id}
-                onClick={() => setPeriodo(p.id)}
-                className={`px-3 py-1.5 text-xs font-bold rounded-md transition
-                  ${periodo === p.id ? "bg-prisma text-white" : "text-muted hover:text-light"}`}
-              >
-                {p.label}
-              </button>
-            ))}
-          </div>
+      {activeTab === "dashboard" && (<>
+      {/* Saldo em destaque */}
+      <section className="rounded-[28px] p-5 bg-gradient-to-br from-mist via-card to-silver/60 border border-card shadow-soft">
+        <div className="flex items-center justify-between">
+          <span className="text-[11px] font-semibold tracking-[0.14em] uppercase text-muted">Saldo total</span>
           <button
-            onClick={exportar}
-            className="flex items-center gap-2 bg-card border border-border rounded-lg px-3 py-2 text-xs font-bold text-muted hover:text-light hover:border-prisma transition"
+            onClick={() => setHideBalance(!hideBalance)}
+            className="w-8 h-8 rounded-full bg-card/80 border border-border flex items-center justify-center text-muted active:scale-95 transition"
+            aria-label={hideBalance ? "Mostrar valores" : "Ocultar valores"}
           >
-            <Download size={14} /> Exportar
+            {hideBalance ? <EyeOff size={15} /> : <Eye size={15} />}
           </button>
         </div>
+        <div className="text-[38px] leading-tight font-light tracking-tight text-ink mt-2">
+          {hideBalance ? "R$ ••••••" : brl(data.saldo)}
+        </div>
+        <div className="inline-flex items-center gap-1 mt-3 rounded-full bg-prisma px-3 py-1 text-[11px] font-semibold text-white">
+          <TrendingUp size={12} />
+          {hideBalance ? "•••" : `+${brl(data.variacaoMes)} este mês`}
+        </div>
+      </section>
+
+      {/* Ações rápidas */}
+      <div className="grid grid-cols-4 gap-2 mt-5">
+        <QuickAction icon={ArrowDownToLine} label="Depositar" onClick={() => setModal("deposito")} />
+        <QuickAction icon={ArrowUpFromLine} label="Sacar" onClick={() => setModal("saque")} />
+        <QuickAction icon={Plus} label="Investir" destaque onClick={() => setModal("novoInvestimento")} />
+        <QuickAction icon={Download} label="Exportar" onClick={exportar} />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <StatCard
-          label="Saldo Total"
-          value={brl(data.saldo)}
-          delta={`+${brl(data.variacaoMes)} este mês`}
-          hidden={hideBalance}
-          onToggleHide={() => setHideBalance(!hideBalance)}
-          accent
-        />
-        <StatCard
-          label="Investido"
-          value={brl(data.investido)}
-          delta="+1.8% este mês"
-          hidden={hideBalance}
-          onToggleHide={() => setHideBalance(!hideBalance)}
-        />
-        <StatCard
-          label="Rentabilidade"
-          value="+3,6%"
-          delta="últimos 30 dias"
-        />
-        <StatCard
-          label="Transações"
-          value={String(data.transacoesMes)}
-          delta="este mês"
-        />
+      {/* Indicadores (carrossel) */}
+      <div className="flex gap-3 overflow-x-auto snap-x scroll-px-4 no-scrollbar -mx-4 px-4 py-1 mt-5">
+        <StatCard icon={PiggyBank} label="Investido" value={brl(data.investido)} delta="+1.8% este mês" hidden={hideBalance} />
+        <StatCard icon={TrendingUp} label="Rentab." value="+3,6%" delta="últimos 30 dias" />
+        <StatCard icon={Receipt} label="Transações" value={String(data.transacoesMes)} delta="este mês" />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
-        <button
-          onClick={() => setModal("deposito")}
-          className="flex items-center justify-center gap-2 bg-success/90 hover:bg-success text-white rounded-xl py-3 font-bold transition"
-        >
-          <ArrowDownToLine size={18} /> Depositar
-        </button>
-        <button
-          onClick={() => setModal("saque")}
-          className="flex items-center justify-center gap-2 bg-danger/90 hover:bg-danger text-white rounded-xl py-3 font-bold transition"
-        >
-          <ArrowUpFromLine size={18} /> Sacar
-        </button>
-        <button
-          onClick={() => setModal("novoInvestimento")}
-          className="flex items-center justify-center gap-2 bg-prisma hover:bg-prismaHover text-white rounded-xl py-3 font-bold transition"
-        >
-          <Plus size={18} /> Novo investimento
-        </button>
-      </div>
+      {/* Transações */}
+      <section className="mt-5 bg-card border border-border rounded-3xl px-4 pt-4 pb-1 shadow-soft">
+        <div className="flex items-center justify-between">
+          <h2 className="text-[11px] font-semibold tracking-[0.14em] uppercase text-ink">Transações recentes</h2>
+          <span className="text-xs text-muted">{transacoesFiltradas.length} resultado(s)</span>
+        </div>
+        <div className="grid grid-cols-4 bg-bg rounded-full p-1 mt-3">
+          {PERIODOS.map((p) => (
+            <button
+              key={p.id}
+              onClick={() => setPeriodo(p.id)}
+              className={`py-1.5 text-xs font-semibold rounded-full transition
+                ${periodo === p.id ? "bg-card text-prisma shadow-soft" : "text-muted"}`}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+        <TransactionsTable rows={transacoesFiltradas} onDelete={excluirTransacao} />
+      </section>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <section className="lg:col-span-2 bg-card border border-border rounded-2xl p-5">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="font-bold">Transações recentes</h2>
-            <span className="text-xs text-muted">{transacoesFiltradas.length} resultado(s)</span>
-          </div>
-          <TransactionsTable rows={transacoesFiltradas} onDelete={excluirTransacao} />
-        </section>
+      {/* Investimentos */}
+      <section className="mt-4 bg-card border border-border rounded-3xl px-4 pt-4 pb-1 shadow-soft">
+        <h2 className="text-[11px] font-semibold tracking-[0.14em] uppercase text-ink">Seus investimentos</h2>
+        <InvestmentsList items={data.investimentos} />
+      </section>
+      </>)}
 
-        <section className="bg-card border border-border rounded-2xl p-5">
-          <h2 className="font-bold mb-3">Seus investimentos</h2>
-          <InvestmentsList items={data.investimentos} />
-        </section>
-      </div>
+      {activeTab === "carteira" && (
+        <Carteira data={data} hidden={hideBalance} onToast={toast} onNovoInvestimento={() => setModal("novoInvestimento")} />
+      )}
+      {activeTab === "transacoes" && (
+        <Transacoes transacoes={data.transacoes} search={search} hidden={hideBalance} onDelete={excluirTransacao} />
+      )}
+      {activeTab === "relatorios" && (
+        <Relatorios data={data} hidden={hideBalance} onToast={toast} />
+      )}
+      {activeTab === "config" && (
+        <Ajustes onToast={toast} onLogout={() => toast({ kind: "info", msg: "Saindo da conta…" })} />
+      )}
 
       <Modal open={modal === "deposito"} title="Novo depósito" onClose={resetModal}>
         <FormValor
@@ -261,36 +252,47 @@ export default function DashboardPage() {
   );
 }
 
+function QuickAction({ icon: Icon, label, destaque = false, onClick }) {
+  return (
+    <button onClick={onClick} className="flex flex-col items-center gap-2 active:scale-95 transition">
+      <span className={`w-14 h-14 rounded-2xl flex items-center justify-center
+        ${destaque ? "bg-prisma text-white shadow-soft" : "bg-card text-ink border border-border shadow-soft"}`}>
+        <Icon size={21} strokeWidth={1.8} />
+      </span>
+      <span className="text-[11px] font-medium text-muted">{label}</span>
+    </button>
+  );
+}
+
 function FormValor({ valor, setValor, descricao, setDescricao, onSubmit, onCancel, cor, nomeLabel = "Descrição", nomePlaceholder = "Opcional" }) {
-  const corClasse = cor === "success" ? "bg-success hover:bg-success/80"
-                  : cor === "danger"  ? "bg-danger hover:bg-danger/80"
-                  :                     "bg-prisma hover:bg-prismaHover";
+  // Minimalista: o botão de confirmar é sempre azul; só o saque usa um tom de alerta suave.
+  const corClasse = cor === "danger" ? "bg-ink hover:bg-ink/90" : "bg-prisma hover:bg-prismaHover";
   return (
     <form onSubmit={(e) => { e.preventDefault(); onSubmit(); }} className="space-y-3">
       <div>
-        <label className="block text-xs text-muted mb-1">{nomeLabel}</label>
+        <label className="block text-xs font-semibold text-muted mb-1.5 ml-1">{nomeLabel}</label>
         <input
           value={descricao}
           onChange={(e) => setDescricao(e.target.value)}
           placeholder={nomePlaceholder}
-          className="w-full bg-bg border border-border rounded-lg px-3 py-2 text-sm focus:border-prisma focus:outline-none"
+          className="w-full bg-bg border border-border rounded-2xl px-4 py-3 text-base text-ink placeholder:text-muted/60 focus:border-sky focus:bg-card focus:outline-none transition"
         />
       </div>
       <div>
-        <label className="block text-xs text-muted mb-1">Valor (R$)</label>
+        <label className="block text-xs font-semibold text-muted mb-1.5 ml-1">Valor (R$)</label>
         <input
           value={valor}
           onChange={(e) => setValor(e.target.value)}
           placeholder="0,00"
           inputMode="decimal"
-          className="w-full bg-bg border border-border rounded-lg px-3 py-2 text-sm focus:border-prisma focus:outline-none"
+          className="w-full bg-bg border border-border rounded-2xl px-4 py-3 text-base text-ink placeholder:text-muted/60 focus:border-sky focus:bg-card focus:outline-none transition"
         />
       </div>
-      <div className="flex gap-2 pt-2">
-        <button type="button" onClick={onCancel} className="flex-1 bg-bg border border-border rounded-lg py-2 text-sm font-bold text-muted hover:text-light transition">
+      <div className="flex gap-3 pt-3">
+        <button type="button" onClick={onCancel} className="flex-1 bg-bg border border-border rounded-2xl py-3.5 text-sm font-semibold text-muted active:scale-[0.98] transition">
           Cancelar
         </button>
-        <button type="submit" className={`flex-1 ${corClasse} text-white rounded-lg py-2 text-sm font-bold transition`}>
+        <button type="submit" className={`flex-1 ${corClasse} text-white rounded-2xl py-3.5 text-sm font-semibold active:scale-[0.98] transition`}>
           Confirmar
         </button>
       </div>

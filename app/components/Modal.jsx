@@ -1,25 +1,30 @@
 "use client";
 import { X } from "lucide-react";
 
+// Bottom sheet: sobe da parte de baixo da tela, como em apps nativos.
 export default function Modal({ open, title, onClose, children }) {
   if (!open) return null;
   return (
     <div
-      className="fixed inset-0 z-40 bg-black/60 flex items-center justify-center p-4"
+      className="absolute inset-0 z-40 bg-ink/25 backdrop-blur-[2px] flex items-end animate-fade-in"
       onClick={onClose}
     >
       <div
-        className="bg-card border border-border rounded-2xl w-full max-w-md p-6"
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        className="w-full bg-card rounded-t-[28px] px-5 pt-3 pb-[max(env(safe-area-inset-bottom),24px)] shadow-phone animate-slide-up"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-bold">{title}</h3>
+        <div className="mx-auto mb-4 h-1.5 w-10 rounded-full bg-silver" />
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="text-lg font-semibold text-ink">{title}</h3>
           <button
             onClick={onClose}
-            className="text-muted hover:text-light transition"
+            className="w-8 h-8 rounded-full bg-bg flex items-center justify-center text-muted active:scale-95 transition"
             aria-label="Fechar"
           >
-            <X size={20} />
+            <X size={16} />
           </button>
         </div>
         {children}
