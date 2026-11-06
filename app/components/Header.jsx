@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Search, Bell, User, X, LogOut, HelpCircle, Settings } from "lucide-react";
 
-export default function Header({ title, search, setSearch, onToast, onLogout, onNavigate }) {
+export default function Header({ title, search, setSearch, onToast, onLogout, onNavigate, userName = "Vini" }) {
   const [notifOpen, setNotifOpen] = useState(false);
   const [userOpen, setUserOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(Boolean(search));
@@ -57,7 +57,7 @@ export default function Header({ title, search, setSearch, onToast, onLogout, on
         </div>
 
         <div className="flex-1 min-w-0 leading-tight">
-          <div className="text-xs text-muted">Olá, Vini</div>
+          <div className="text-xs text-muted truncate">Olá, {userName}</div>
           <div className="text-lg font-semibold tracking-tight truncate text-ink">{title}</div>
         </div>
 

@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useMemo, useState } from "react";
+import { useRef, useMemo, useState, useEffect } from "react";
 import { Plus, Download, ArrowDownToLine, ArrowUpFromLine, Eye, EyeOff, TrendingUp, PiggyBank, Receipt } from "lucide-react";
 import DashboardLayout from "./components/DashboardLayout";
 import StatCard from "./components/StatCard";
@@ -10,6 +10,11 @@ import Carteira from "./components/screens/Carteira";
 import Transacoes from "./components/screens/Transacoes";
 import Relatorios from "./components/screens/Relatorios";
 import Ajustes from "./components/screens/Ajustes";
+import Login, { AppFrame, PrismaLogo } from "./components/screens/Login";
+
+const SESSAO = "prisma-sessao";
+const lerSessao = () => { try { return JSON.parse(localStorage.getItem(SESSAO)) || null; } catch { return null; } };
+const salvarSessao = (u) => { try { u ? localStorage.setItem(SESSAO, JSON.stringify(u)) : localStorage.removeItem(SESSAO); } catch {} };
 
 const PERIODOS = [
   { id: "7d",  label: "7D"  },
@@ -41,6 +46,10 @@ const brl = (n) =>
   "R$ " + n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 export default function DashboardPage() {
+  // undefined = ainda lendo a sessão salva; null = deslogado.
+  const [user, setUser] = useState(undefined);
+  useEffect(() => { setUser(lerSessao()); }, []);
+
   const [activeTab, setActiveTab] = useState("dashboard");
   const [search, setSearch]       = useState("");
   const [periodo, setPeriodo]     = useState("30d");
@@ -132,8 +141,25 @@ export default function DashboardPage() {
     relatorios: "Relatórios", config: "Ajustes",
   };
 
+  const entrar = (u) => { salvarSessao(u); setUser(u); setActiveTab("dashboard"); };
+  const sair = () => { salvarSessao(null); setUser(null); setSearch(""); setModal(null); setHideBalance(false); };
+
+  if (user === undefined) {
+    return (
+      <AppFrame>
+        <div className="flex-1 flex flex-col items-center justify-center gap-4 animate-fade-in">
+          <PrismaLogo size={72} />
+          <span className="text-xs text-muted">Carregando…</span>
+        </div>
+      </AppFrame>
+    );
+  }
+  if (!user) return <Login onLogin={entrar} />;
+
   return (
     <DashboardLayout
+      userName={user.nome}
+      onLogout={sair}
       activeTab={activeTab} setActiveTab={setActiveTab}
       title={TITULOS[activeTab]}
       search={search} setSearch={setSearch}
@@ -214,7 +240,7 @@ export default function DashboardPage() {
         <Relatorios data={data} hidden={hideBalance} onToast={toast} />
       )}
       {activeTab === "config" && (
-        <Ajustes onToast={toast} onLogout={() => toast({ kind: "info", msg: "Saindo da conta…" })} />
+        <Ajustes user={user} onToast={toast} onLogout={sair} />
       )}
 
       <Modal open={modal === "deposito"} title="Novo depósito" onClose={resetModal}>

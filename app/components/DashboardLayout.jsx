@@ -4,7 +4,7 @@ import BottomNav from "./BottomNav";
 import Header from "./Header";
 import Toast from "./Toast";
 
-export default function DashboardLayout({ activeTab, setActiveTab, title, search, setSearch, children, onToastRef }) {
+export default function DashboardLayout({ activeTab, setActiveTab, title, search, setSearch, children, onToastRef, userName, onLogout }) {
   const [toast, setToast] = useState(null);
   const mainRef = useRef(null);
 
@@ -18,9 +18,6 @@ export default function DashboardLayout({ activeTab, setActiveTab, title, search
 
   if (onToastRef) onToastRef.current = showToast;
 
-  const handleLogout = () => {
-    showToast({ kind: "info", msg: "Saindo da conta…" });
-  };
 
   return (
     // No celular ocupa a tela toda; no desktop vira uma "moldura" de telefone centralizada.
@@ -31,7 +28,8 @@ export default function DashboardLayout({ activeTab, setActiveTab, title, search
           search={search}
           setSearch={setSearch}
           onToast={showToast}
-          onLogout={handleLogout}
+          userName={userName}
+          onLogout={onLogout}
           onNavigate={setActiveTab}
         />
         <main ref={mainRef} className="flex-1 overflow-y-auto overscroll-contain no-scrollbar px-4 pt-2 pb-28">

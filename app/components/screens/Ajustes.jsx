@@ -26,7 +26,7 @@ const FAQ = [
   },
 ];
 
-export default function Ajustes({ onToast, onLogout }) {
+export default function Ajustes({ user, onToast, onLogout }) {
   const faqRef = useRef(null);
   const senhaRef = useRef(null);
   const ir = (ref) => ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -40,9 +40,9 @@ export default function Ajustes({ onToast, onLogout }) {
         <span className="w-12 h-12 rounded-full bg-mist border border-sky/60 flex items-center justify-center">
           <User size={20} className="text-prisma" strokeWidth={1.8} />
         </span>
-        <div className="flex-1">
-          <div className="font-semibold text-ink">Vini</div>
-          <div className="text-xs text-muted">Conta Prisma Investments</div>
+        <div className="flex-1 min-w-0">
+          <div className="font-semibold text-ink">{user?.nome ?? "Vini"}</div>
+          <div className="text-xs text-muted truncate">{user?.email || "Conta Prisma Investments"}</div>
         </div>
       </Card>
 
