@@ -1,5 +1,7 @@
 // Service worker mínimo: rede primeiro, cache como reserva (o app abre mesmo sem internet).
 const CACHE = "prisma-v1";
+// Escopo do SW = pasta onde ele está ("/" localmente, "/prisma-dashboard/" no GitHub Pages).
+const HOME = new URL("./", self.location).pathname;
 
 self.addEventListener("install", () => self.skipWaiting());
 
@@ -23,6 +25,6 @@ self.addEventListener("fetch", (event) => {
         }
         return res;
       })
-      .catch(() => caches.match(req).then((hit) => hit ?? caches.match("/")))
+      .catch(() => caches.match(req).then((hit) => hit ?? caches.match(HOME)))
   );
 });

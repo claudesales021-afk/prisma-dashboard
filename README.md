@@ -1,7 +1,14 @@
-# Prisma Investments — Dashboard
+# Prisma Investments — App
 
-Dashboard web em Next.js 14 (App Router) + Tailwind CSS para o aplicativo Prisma Investments.
-Paleta Ocean Blue, componentes com estado real (sem botão decorativo).
+Aplicativo web (PWA) em Next.js 14 (App Router) + Tailwind CSS para o Prisma Investments.
+Visual de app mobile minimalista, em prata e azul claro. Pode ser instalado na tela inicial do celular.
+
+**No ar:** https://claudesales021-afk.github.io/prisma-dashboard/
+
+## Instalar no celular
+
+- **iPhone:** abra o link no Safari → Compartilhar → **Adicionar à Tela de Início**
+- **Android:** abra o link no Chrome → menu ⋮ → **Instalar app**
 
 ## Rodar localmente
 
@@ -12,65 +19,48 @@ npm run dev
 
 Acesse `http://localhost:3000`.
 
-## Scripts
+## Deploy
 
-- `npm run dev` — modo desenvolvimento
-- `npm run build` — build de produção
-- `npm start` — servir o build
-- `npm run lint` — ESLint
+Cada `git push` na branch `main` publica automaticamente no GitHub Pages
+(workflow em `.github/workflows/deploy.yml`). O build é um export estático (`out/`)
+servido em `/prisma-dashboard`, definido pela variável `NEXT_PUBLIC_BASE_PATH`.
 
-## Deploy na Vercel (CI/CD)
+## Telas
 
-1. Suba o código para o GitHub (ver passo a passo abaixo).
-2. Acesse https://vercel.com/new
-3. Clique em **Import Git Repository** e selecione `prisma-dashboard`
-4. Vercel detecta Next.js automaticamente — deixe os campos padrão:
-   - Framework Preset: **Next.js**
-   - Build Command: `next build`
-   - Output Directory: `.next`
-   - Install Command: `npm install`
-5. Clique em **Deploy**. Cada `git push` na branch `main` gera um deploy novo automaticamente.
-
-## Enviar para o GitHub
-
-```bash
-git init
-git add .
-git commit -m "feat: dashboard inicial do Prisma Investments"
-git branch -M main
-git remote add origin https://github.com/SEU_USUARIO/prisma-dashboard.git
-git push -u origin main
-```
+Início · Carteira · Transações · Relatórios · Ajustes (FAQ, alterar senha, sair)
 
 ## Estrutura
 
 ```
 app/
-  layout.jsx           # layout raiz (html/body)
-  page.jsx             # Dashboard Home (estado global, modais, handlers)
-  globals.css          # Tailwind + Inter
+  layout.jsx                 # layout raiz, metadados PWA
+  page.jsx                   # estado global, tela Início, modais
+  manifest.webmanifest/      # manifesto PWA
   components/
-    DashboardLayout.jsx
-    Sidebar.jsx
-    Header.jsx
-    StatCard.jsx
-    TransactionsTable.jsx
-    InvestmentsList.jsx
-    Modal.jsx
-    Toast.jsx
+    DashboardLayout.jsx      # moldura do app, cabeçalho, abas, avisos
+    Header.jsx  BottomNav.jsx  Modal.jsx  Toast.jsx
+    StatCard.jsx  TransactionsTable.jsx  InvestmentsList.jsx
+    ui.jsx                   # Card, SectionTitle, HeroCard, Segmented, Donut
+    RegisterSW.jsx           # registra o service worker
+    screens/                 # Carteira, Transacoes, Relatorios, Ajustes
+  lib/format.js              # formatação de valores e agrupamentos
+public/
+  icons/  sw.js
 ```
 
-## Paleta Ocean Blue
+## Paleta
 
-| Token          | Hex        | Uso                            |
-|----------------|------------|--------------------------------|
-| `bg`           | `#03045E`  | Fundo da página                |
-| `card`         | `#023E8A`  | Superfície elevada             |
-| `border`       | `#0077B6`  | Bordas e separadores           |
-| `prisma`       | `#00B4D8`  | Accent principal (CTA, ativo)  |
-| `prismaHover`  | `#0096C7`  | Hover do accent                |
-| `info`         | `#48CAE4`  | Informações                    |
-| `muted`        | `#90E0EF`  | Texto secundário               |
-| `light`        | `#CAF0F8`  | Texto principal                |
-| `success`      | `#10B981`  | Depósitos, confirmações        |
-| `danger`       | `#EF4444`  | Saques, erros                  |
+| Token     | Hex       | Uso                              |
+|-----------|-----------|----------------------------------|
+| `deep`    | `#C9CCD4` | Prata — fundo atrás da moldura   |
+| `bg`      | `#F3F4F7` | Fundo da tela                    |
+| `card`    | `#FFFFFF` | Superfícies                      |
+| `border`  | `#E3E6EC` | Bordas e divisores               |
+| `silver`  | `#D6DAE1` | Prata médio                      |
+| `mist`    | `#E7F3FB` | Azul bem claro                   |
+| `sky`     | `#9ED3F2` | Azul claro                       |
+| `prisma`  | `#2B96D3` | Destaque (botões, aba ativa)     |
+| `ink`     | `#2A2F3A` | Texto principal                  |
+| `muted`   | `#737A88` | Texto secundário                 |
+| `success` | `#2F9E73` | Entradas, rendimentos            |
+| `danger`  | `#D95C5C` | Erros                            |
